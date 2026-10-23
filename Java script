@@ -1,0 +1,188 @@
+JavaScript Code – script.js
+// ---------- Data ----------
+const defaultClubs = [
+{ id: 1, name: "Coding Club", category: "Technical", icon: "\u{1F4BB}",
+desc: "Hackathons, coding contests and web development workshops.",
+coordinator: "Dr. Ramesh", meet: "Friday 4 PM" },
+{ id: 2, name: "Robotics Club", category: "Technical", icon: "\u{1F916}",
+desc: "Build robots and explore IoT and embedded systems.",
+coordinator: "Prof. Kavitha", meet: "Wednesday 3 PM" },
+{ id: 3, name: "Music Club", category: "Cultural", icon: "\u{1F3B5}",
+desc: "Singing, instruments and stage performances.",
+coordinator: "Ms. Anitha", meet: "Tuesday 4 PM" },
+{ id: 4, name: "Dance Club", category: "Cultural", icon: "\u{1F483}",
+desc: "Classical and western dance practice for college fests.",
+coordinator: "Mr. Suresh", meet: "Thursday 4 PM" },
+{ id: 5, name: "Sports Club", category: "Sports", icon: "\u{1F3CF}",
+desc: "Cricket, football, volleyball and athletics training.",
+coordinator: "Mr. Karthik", meet: "Daily 5 PM" },
+{ id: 6, name: "NSS Club", category: "Social", icon: "\u{1F91D}",
+desc: "Community service, blood donation and tree plantation drives.",
+coordinator: "Dr. Meena", meet: "Saturday 10 AM" },
+{ id: 7, name: "Photography Club", category: "Creative", icon: "\u{1F4F7}",
+desc: "Photo walks, editing sessions and campus exhibitions.",
+coordinator: "Ms. Divya", meet: "Monday 4 PM" },
+{ id: 8, name: "Literary Club", category: "Creative", icon: "\u{1F4DA}",
+desc: "Debates, quizzes, creative writing and public speaking.",
+coordinator: "Dr. Latha", meet: "Wednesday 2 PM" }
+];
+// ---------- State (persisted in localStorage) ----------
+const load = (k, d) => JSON.parse(localStorage.getItem(k) || JSON.stringify(d));
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+let clubs = defaultClubs;
+let members = load("members", {
+1: [{ name: "Arun Kumar", email: "arun@college.edu", phone: "9876543210" }]
+});
+let events = load("events", [
+{ club: "Coding Club", title: "Web Dev Hackathon", date: "2026-11-05" }
+]);
+let currentClub = null;
+// ---------- DOM ----------
+const $ = id => document.getElementById(id);
+const grid = $("clubGrid");
+const searchInput = $("searchInput");
+const categoryFilter = $("categoryFilter");
+// ---------- Display clubs dynamically + search/filter ----------
+function populateCategories() {
+const categories = [...new Set(clubs.map(c => c.category))];
+categories.forEach(cat => {
+const o = document.createElement("option");
+o.value = o.textContent = cat;
+categoryFilter.appendChild(o);
+});
+$("eventClub").innerHTML = clubs.map(c => `<option>${c.name}</option>`).join("");
+}
+function renderClubs() {
+const q = searchInput.value.trim().toLowerCase();
+const cat = categoryFilter.value;
+const list = clubs.filter(c =>
+c.name.toLowerCase().includes(q) && (cat === "All" || c.category === cat)
+);
+$("clubCount").textContent = `${list.length} club(s) found`;
+grid.innerHTML = list.length
+? list.map(c => `
+<article class="card">
+<div class="icon">${c.icon}</div>
+<h3>${c.name}</h3>
+<span class="tag">${c.category}</span>
+<p>${c.desc}</p>
+<small>\u{1F465} ${(members[c.id] || []).length} members</small>
+<div class="row">
+<button class="btn" onclick="openClub(${c.id})">View / Join</button>
+</div>
+</article>`).join("")
+: `<p class="empty">No clubs match your search.</p>`;
+}
+// ---------- Club information modal ----------
+function openClub(id) {
+currentClub = clubs.find(c => c.id === id);
+$("mCategory").textContent = currentClub.category;
+$("mName").textContent = currentClub.name;
+$("mDesc").textContent = currentClub.desc;
+$("mCoord").textContent = currentClub.coordinator;
+$("mMeet").textContent = currentClub.meet;
+$("memberForm").reset();
+clearErrors();
+renderMembers();
+$("modal").classList.remove("hidden");
+}
+function closeClub() {
+$("modal").classList.add("hidden");
+renderClubs();
+}
+// ---------- Display members + leave club ----------
+function renderMembers() {
+const list = members[currentClub.id] || [];
+$("memCount").textContent = list.length;
+$("memberList").innerHTML = list.length
+? list.map((m, i) => `
+<li>
+<span>${m.name} <small>(${m.email})</small></span>
+<button class="btn danger small" onclick="leaveClub(${i})">Leave</button>
+</li>`).join("")
+: `<li class="empty">No members yet. Be the first to join!</li>`;
+}
+function leaveClub(index) {
+members[currentClub.id].splice(index, 1);
+save("members", members);
+renderMembers();
+}
+// ---------- Member registration with validation ----------
+function clearErrors() {
+["Name", "Email", "Phone"].forEach(f => {
+$("err" + f).textContent = "";
+$("mb" + f).classList.remove("invalid");
+});
+}
+function setError(f, msg) {
+$("err" + f).textContent = msg;
+$("mb" + f).classList.add("invalid");
+}
+$("memberForm").addEventListener("submit", e => {
+e.preventDefault();
+clearErrors();
+const name = $("mbName").value.trim();
+const email = $("mbEmail").value.trim();
+const phone = $("mbPhone").value.trim();
+let ok = true;
+if (!/^[A-Za-z ]{3,}$/.test(name)) {
+setError("Name", "Enter a valid name (letters only, min 3).");
+ok = false;
+}
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+setError("Email", "Enter a valid email address.");
+ok = false;
+}
+if (!/^[6-9]\d{9}$/.test(phone)) {
+setError("Phone", "Enter a valid 10-digit mobile number.");
+ok = false;
+}
+const list = (members[currentClub.id] = members[currentClub.id] || []);
+if (ok && list.some(m => m.email.toLowerCase() === email.toLowerCase())) {
+setError("Email", "Already registered in this club.");
+ok = false;
+}
+if (!ok) return;
+list.push({ name, email, phone }); // Join club
+save("members", members);
+$("memberForm").reset();
+renderMembers();
+});
+// ---------- Event announcements ----------
+function renderEvents() {
+const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
+$("eventList").innerHTML = sorted.length
+? sorted.map(ev => `
+<li>
+<span><b>${ev.title}</b> \u{2014} ${ev.club} <small>(${ev.date})</small></span>
+<button class="btn danger small"
+onclick="deleteEvent(${events.indexOf(ev)})">\u{2715}</button>
+</li>`).join("")
+: `<li class="empty">No announcements yet.</li>`;
+}
+$("eventForm").addEventListener("submit", e => {
+e.preventDefault();
+events.push({
+club: $("eventClub").value,
+title: $("eventTitle").value.trim(),
+date: $("eventDate").value
+});
+save("events", events);
+$("eventForm").reset();
+renderEvents();
+});
+function deleteEvent(i) {
+events.splice(i, 1);
+save("events", events);
+renderEvents();
+}
+// ---------- Init ----------
+searchInput.addEventListener("input", renderClubs);
+categoryFilter.addEventListener("change", renderClubs);
+$("closeModal").addEventListener("click", closeClub);
+$("modal").addEventListener("click", e => {
+if (e.target.id === "modal") closeClub();
+});
+populateCategories();
+renderClubs();
+renderEvents();

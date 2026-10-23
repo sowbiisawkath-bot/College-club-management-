@@ -1,0 +1,63 @@
+HTML Code – index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>College Club Management Portal</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+<h1>&#x1F393; College Club Management Portal</h1>
+<p>Discover clubs, join the community and stay updated with events</p>
+</header>
+<main class="container">
+<section class="controls">
+<input type="text" id="searchInput" placeholder="Search clubs by name...">
+<select id="categoryFilter">
+<option value="All">All Categories</option>
+</select>
+<span id="clubCount" class="count"></span>
+</section>
+<section id="clubGrid" class="grid"></section>
+<section class="panel">
+<h2>&#x1F4E2; Event Announcements</h2>
+<form id="eventForm" class="inline-form">
+<select id="eventClub" required></select>
+<input type="text" id="eventTitle" placeholder="Event title" required>
+<input type="date" id="eventDate" required>
+<button type="submit" class="btn">Add Event</button>
+</form>
+<ul id="eventList" class="events"></ul>
+</section>
+</main>
+<!-- Club details modal -->
+<div id="modal" class="modal hidden">
+<div class="modal-box">
+<button class="close" id="closeModal">&times;</button>
+<span class="tag" id="mCategory"></span>
+<h2 id="mName"></h2>
+<p id="mDesc"></p>
+<p class="meta">
+<b>Coordinator:</b> <span id="mCoord"></span> &nbsp;|&nbsp;
+<b>Meets:</b> <span id="mMeet"></span>
+</p>
+<h3>Register as Member</h3>
+<form id="memberForm" novalidate>
+<input type="text" id="mbName" placeholder="Full name">
+<small class="err" id="errName"></small>
+<input type="text" id="mbEmail" placeholder="College email (name@college.edu)">
+<small class="err" id="errEmail"></small>
+<input type="text" id="mbPhone" placeholder="Phone (10 digits)">
+<small class="err" id="errPhone"></small>
+<button type="submit" class="btn">Join Club</button>
+</form>
+<h3>Club Members (<span id="memCount">0</span>)</h3>
+<ul id="memberList" class="members"></ul>
+</div>
+</div>
+<footer>&#xA9; 2026 College Club Management Portal</footer>
+<script src="script.js"></script>
+</body>
+</html>
